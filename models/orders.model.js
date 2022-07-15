@@ -25,7 +25,8 @@ const Orders = db.define("orders", {
     },
     status: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        defaultValue: "active"
     }
 })
 

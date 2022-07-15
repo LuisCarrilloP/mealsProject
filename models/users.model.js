@@ -26,7 +26,9 @@ const Users = db.define("users", {
         defaultValue: "active"
     },
     role: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "normal"
     }
 })
 

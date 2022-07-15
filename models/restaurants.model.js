@@ -23,7 +23,8 @@ const Restaurants = db.define("restaurants", {
     },
     status: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        defaultValue: "active"
     }
 })
 
