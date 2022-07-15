@@ -7,12 +7,13 @@ const { catchAsync } = require("../utils/catchAsync.util")
 
 const userExists = catchAsync( async( req, res, next ) => {
     const { id } = req.params
-    const user = await Users.findOne({ where: { id } })
+    const user = await Users.findOne({ where: { id, status: "active" } })
 
     if(!user){
         next(new AppError("User not found", 404))
     }
     req.user = user
+    
     next()
 })
 

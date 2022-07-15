@@ -11,7 +11,7 @@ const orderExist = catchAsync( async( req, res, next ) => {
     const order = await Orders.findOne({ where: { id } })
 
     if(!order){
-        return next(new AppError("Order not found"))
+        return next(new AppError("Order not found", 404))
     }
     req.order = order
 

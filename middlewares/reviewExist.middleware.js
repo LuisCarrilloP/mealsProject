@@ -6,9 +6,9 @@ const { AppError } = require("../utils/appError.util")
 const { catchAsync } = require("../utils/catchAsync.util")
 
 const reviewExist = catchAsync( async( req, res, next ) => {
-    const { id } = req.params
+    const { reviewId } = req.params
 
-    const review = await Reviews.findOne({ where: { id } })
+    const review = await Reviews.findOne({ where: { id: reviewId, status: "active" } })
 
     if(!review){
         return next(new AppError("Review not found", 404))
