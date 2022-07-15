@@ -6,6 +6,7 @@ const { createUser, login, getAllUsers, updateUser, disableUser, getAllOrdersByU
 //Middlewares
 const { createUserValidator } = require("../middlewares/validators.middleware")
 const { userExists } = require("../middlewares/userExist.middleware")
+const { orderExist } = require("../middlewares/orderExist.middleware")
 const { protectSession, protectUserAccount } = require("../middlewares/auth.middleware")
 
 const usersRouter = express.Router()
@@ -15,7 +16,7 @@ usersRouter.post("/login", login )
 usersRouter.get("/", protectSession, getAllUsers)
 usersRouter.patch("/:id",protectSession, userExists, protectUserAccount, updateUser)
 usersRouter.delete("/:id",protectSession, userExists, protectUserAccount, disableUser)
-usersRouter.get("/orders", getAllOrdersByUser )
-usersRouter.get("/orders/:id", protectSession, getOrderByID)
+usersRouter.get("/orders",protectSession, getAllOrdersByUser )
+usersRouter.get("/orders/:id", protectSession, orderExist, getOrderByID)
 
 module.exports = { usersRouter }
