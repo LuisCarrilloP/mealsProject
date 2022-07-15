@@ -4,6 +4,7 @@ const express = require("express")
 const { usersRouter } = require("./routes/users.router")
 const { mealsRouter } = require("./routes/meals.router")
 const { restaurantRouter } = require("./routes/restaurant.router")
+const { ordersRouter } = require("./routes/orders.router")
 
 //GlobalError
 const { globalErrorHandler } = require("./controllers/globalErrorHandler.controller")
@@ -21,6 +22,7 @@ app.use(express.json())
 app.use("/api/v1/users", usersRouter)
 app.use("/api/v1/meals", mealsRouter)
 app.use("/api/v1/restaurants", restaurantRouter)
+app.use("/api/v1/orders", ordersRouter)
 
 //Listen requests even wrong ones
 app.all("*", (req, res, next) => {

@@ -32,7 +32,9 @@ db.authenticate()
     Users.hasMany(Reviews, { foreignKey: "userId" })
     Reviews.belongsTo(Users)
 
-    //
+    //1 User <---> M Orders
+    Users.hasMany(Orders, { foreignKey: "userId"})
+    Orders.belongsTo(Users)
 
 //Sync db
 db.sync()
