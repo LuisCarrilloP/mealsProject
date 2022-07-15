@@ -1,4 +1,5 @@
 const express = require("express")
+const rateLimit = require("express-rate-limit")
 
 //Routers
 const { usersRouter } = require("./routes/users.router")
@@ -17,6 +18,14 @@ const app = express()
 
 //Allow json
 app.use(express.json())
+
+//Limit the number of requests
+const limiter = rateLimit({
+    max: 10000,
+    windowMs: 60 * 60 * 1000,//1hr
+    message: "Number of requests have been exceeded"
+})
+app.use(limiter)
 
 //Endpoints
 app.use("/api/v1/users", usersRouter)
