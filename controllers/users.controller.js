@@ -7,13 +7,15 @@ dotenv.config({ path: "./config.env" })
 //Models
 const { Users } = require("../models/users.model")
 const { Orders } = require("../models/orders.model")
+const { Meals } = require("../models/meals.model")
+const { Restaurants } = require("../models/restaurants.model")
 
 //Utils
 const { catchAsync } = require("../utils/catchAsync.util")
 const { AppError } = require("../utils/appError.util")
 
 const createUser = catchAsync( async(req, res, next) => {
-    const { name, email, password, rol} = req.body
+    const { name, email, password, role } = req.body
 
     //Hash password
     const salt = await bcrypt.genSalt(12)
@@ -23,7 +25,7 @@ const createUser = catchAsync( async(req, res, next) => {
         name,
         email,
         password: hashPassword, 
-        rol
+        role
     })
     newUser.password = undefined //removing from the response
 
@@ -40,13 +42,13 @@ const login = catchAsync( async( req, res, next ) => {
     //Validar credenciales
     const user = await Users.findOne({ where: { email, status: "active" } })
     if(!user){
-        return next(new AppError("Invalid credentials", 404))
+        return next(new AppError("Invalid credentials", 401))
     }
 
     //Validar password
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if(!isPasswordValid){
-        return next(new AppError("Invalid credentials", 404))
+        return next(new AppError("Invalid credentials", 401))
     }
 
     //JWT
@@ -62,8 +64,9 @@ const login = catchAsync( async( req, res, next ) => {
 const getAllUsers = catchAsync(async(req, res, next ) => {
 
     const users = await Users.findAll({ 
-        attributes: ["id", "name", "email", "status"],
-        where: { status: "active" } })
+        where: { status: "active" } ,
+        attributes: ["id", "name", "email", "status"]
+    })
 
     res.status(200).json({
         status: "sucess",
@@ -89,7 +92,7 @@ const updateUser = catchAsync( async( req, res, next ) => {
 const disableUser = catchAsync( async( req, res, next ) => {
     const { user } = req
 
-    const userDisabled = await user.update({ status: "deleted" })
+    const userDisabled = await user.update({ status: "disable" })
 
     res.status(204).json({
         status: "sucess",
@@ -101,30 +104,53 @@ const disableUser = catchAsync( async( req, res, next ) => {
 const getAllOrdersByUser = catchAsync( async( req, res, next ) => {
     const { sessionUser } = req
 
-    const orders =  await Orders.findAll({ where: { userId: sessionUser.id } })
+    const user = await Users.findOne({
+        where: { status: "active", id },
+        attributes: ["id", "name", "email", "status", "role"],
+        include: [
+          {model: Order,
+            attributes: ["id","mealId","userId","totalPrice","quantity","status",],
+            include: [
+              {model: Meal,
+                attributes: ["id", "name", "price", "restaurantId", "status"],
+                include: [
+                  {model: Restaurant,
+                    attributes: ["id", "name", "address", "rating", "status"],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
 
-    if(!orders){
-        return new AppError("User haven't created any orders yet", 400)
-    }
-
-    res.status(200).json({
-        status: "sucess",
-        orders
-    })
+      res.status(200).json({
+          status: "sucess",
+          user
+      })
 })
 
 const getOrderByID = catchAsync( async( req, res, next ) => {
-    const { sessionUser } = req
-    const { id } = req.params
-    const order = await Orders.findAll({ where: { id} })
-
-    if(!order){
-        return new AppError(`No order founded with id ${id}`, 404)
-    }
+    const { order } = req
+    
+    const orderId = await Orders.findOne({
+        where: { status: "active", id: order.id },
+        attributes: ["id", "mealId", "userId", "totalPrice", "quantity", "status"],
+        include: [
+            {model: Meals,
+                attributes: ["id", "name", "price", "restaurantId", "status"],
+                include: [
+                    {model: Restaurants,
+                        attributes: ["id", "name", "address", "rating", "status"]
+                    }
+                ]
+            }
+        ]
+    })
 
     res.status(200).json({
         status: "sucess",
-        order
+        orderId
     })
 })
 

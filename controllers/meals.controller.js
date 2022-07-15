@@ -1,5 +1,6 @@
 //Models
 const { Meals } = require("../models/meals.model")
+const { Restaurants } = require("../models/restaurants.model")
 
 //Utils
 const { AppError } = require("../utils/appError.util")
@@ -22,7 +23,13 @@ const createMeal = catchAsync( async( req, res, next ) => {
 })
 
 const getAllMeals = catchAsync( async( req, res, next ) => {
-    const meals = await Meals.findAll({ where: { status: "active"} })
+    const meals = await Meals.findAll({ 
+        where: { status: "active"},
+        attributes: ["id", "name", "price", "restaurantId", "status"],
+        include: [
+            {model: Restaurants, attributes: ["id", "name", "address", "rating", "status"]}
+        ]
+    })
 
     res.status(200).json({
         status: "sucess",
@@ -33,43 +40,52 @@ const getAllMeals = catchAsync( async( req, res, next ) => {
 const getMealById = catchAsync( async( req, res, next ) => {
     const { meal } = req
     
-    const mealI = await Meals.findOne({ where: { id: meal.id, status: "active" } })
-
-    if(!mealI){
-        return new AppError("Not meal found with this id", 404)
-    }
+    const mealId = await Meals.findOne({ 
+        where: { id: meal.id, status: "active" },
+        attributes: ["id", "name", "price", "restaurantId", "status"],
+        include: [
+            {model: Restaurants, attributes: ["id", "name", "address", "rating", "status"]}
+        ]
+    })
 
     res.status(200).json({
         status: "sucees",
-        mealI
+        mealId
     })
 })
 
 const updateMeal = catchAsync( async( req, res, next ) => {
-    const { meal } = req
+    const { meal, sessionUser } = req
     const { name, price } = req.body
-    
-    const mealU = await meal.update({
-        name,
-        price
-    })
 
-    res.status(204).json({
-        status: "sucess",
-        mealU
+    if(sessionUser.role === "admin") {
+        await meal.update({ 
+            name,
+            price 
+        });
+    } else {
+        return next(new AppError("Only admin can modificate", 400));
+    }
+
+    res.status(201).json({ 
+        status: 'success',
+        meal 
     })
 })
 
 const deleteMeal = catchAsync( async( req, res, next ) => {
-    const { meal } = req
+    const { meal, sessionUser } = req
 
-    const mealD = await meal.update({
-        status: "deleted"
-    })
+    if(sessionUser.role === "admin"){
+        await meal.update({ status: "deleted" })
+    }else{
+        return next(new AppError("Only admin can delete", 400))
+    }
+    
 
     res.status(200).json({
         status: "sucess",
-        mealD
+        meal
     })
 })
 
